@@ -1,2 +1,4 @@
 build
 a.exe
+.vscode
+CMakeFiles
