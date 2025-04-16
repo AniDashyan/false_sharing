@@ -25,7 +25,7 @@ void run_non_threaded(CountersAdjacent& counters,int iterations, zen::timer& t) 
     increment_counter(&counters.x, iterations);
     increment_counter(&counters.y, iterations);
     t.stop();
-    zen::log("Non-threaded time: ", t.duration<zen::timer::msec>().count()," ms");
+    zen::log("Non-threaded time: ", t.duration<zen::timer::usec>().count()," ms");
 }
 
 void run_threaded_adjacent(CountersAdjacent& counters,int iterations, zen::timer& t) {
@@ -35,7 +35,7 @@ void run_threaded_adjacent(CountersAdjacent& counters,int iterations, zen::timer
     t1.join();
     t2.join();
     t.stop();
-    zen::log("Threaded (false sharing) time: " ,t.duration<zen::timer::msec>().count() ," ms");
+    zen::log("Threaded (false sharing) time: " ,t.duration<zen::timer::usec>().count() ," ms");
 }
 
 void run_threaded_padded(CountersPadded& counters,int iterations, zen::timer& t) {
@@ -45,7 +45,7 @@ void run_threaded_padded(CountersPadded& counters,int iterations, zen::timer& t)
     t1.join();
     t2.join();
     t.stop();
-    zen::log("Threaded (padded) time: " ,t.duration<zen::timer::msec>().count() ," ms");
+    zen::log("Threaded (padded) time: " ,t.duration<zen::timer::usec>().count() ," ms");
 }
 
 std::pair<int, int> parse_args(int argc, char** argv) {
@@ -76,15 +76,15 @@ int main(int argc, char** argv) {
 
        
         run_non_threaded(counters_adjacent, iterations, t);
-        total_non_threaded += t.duration<zen::timer::msec>().count();
+        total_non_threaded += t.duration<zen::timer::usec>().count();
         
     
         run_threaded_adjacent(counters_adjacent, iterations, t);
-        total_adjacent += t.duration<zen::timer::msec>().count();
+        total_adjacent += t.duration<zen::timer::usec>().count();
      
 
         run_threaded_padded(counters_padded, iterations, t);
-        total_padded += t.duration<zen::timer::msec>().count();
+        total_padded += t.duration<zen::timer::usec>().count();
       
     }
 
