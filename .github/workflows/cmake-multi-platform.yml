@@ -1,0 +1,102 @@
+name: CMake with OpenMP on Windows and Linux
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        compiler: [gcc, clang]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y build-essential cmake libomp-dev
+
+      - name: Set compiler environment variables
+        run: |
+          if [ "${{ matrix.compiler }}" == "gcc" ]; then
+            echo "CC=gcc" >> $GITHUB_ENV
+            echo "CXX=g++" >> $GITHUB_ENV
+          elif [ "${{ matrix.compiler }}" == "clang" ]; then
+            echo "CC=clang" >> $GITHUB_ENV
+            echo "CXX=clang++" >> $GITHUB_ENV
+          fi
+
+      - name: Configure CMake
+        run: >
+          cmake -B build
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_CXX_FLAGS="-fopenmp"
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Run Executable
+        run: |
+          executable="./build/false_sharing"
+          args="--iter 100000000 --runs 5"
+          
+          echo "Checking if executable exists: $executable"
+          if [ -f "$executable" ]; then
+            echo "Running matrix multiplication..."
+            $executable $args
+          else
+            echo "Executable not found!"
+            exit 1
+          fi
+
+  build-windows:
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install MSYS2 and toolchains
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          install: >
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-make
+            mingw-w64-x86_64-openmp
+
+      - name: Configure CMake with MinGW and OpenMP
+        run: |
+          cmake -B build -S . \
+            -G "MinGW Makefiles" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER=gcc \
+            -DCMAKE_CXX_COMPILER=g++ \
+            -DCMAKE_CXX_FLAGS="-fopenmp"
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Run Executable
+        run: |
+          executable="./build/false_sharing.exe"
+          args="--iter 100000000 --runs 5"
+
+          echo "Checking if executable exists: $executable"
+          if [ -f "$executable" ]; then
+            echo "Running matrix multiplication..."
+            $executable $args
+          else
+            echo "Executable not found!"
+            exit 1
+          fi
